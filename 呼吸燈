@@ -1,0 +1,89 @@
+const int buttonPin = 2;
+const int RledPin = 3;
+const int GledPin = 4;
+const int BledPin = 5;
+
+int mode = 0;               // 0 = 呼吸燈, 1 = 快閃燈
+int lastButtonState = HIGH;
+int ledcolor = 0;           // 顏色索引
+
+int brightness = 0;         // 呼吸燈亮度
+int fadeAmount = 5;         // 呼吸變化量
+unsigned long prevMillis = 0;
+const int flashInterval = 250; // 快閃間隔 (毫秒)
+
+void setup() {
+  pinMode(RledPin, OUTPUT);
+  pinMode(GledPin, OUTPUT);
+  pinMode(BledPin, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
+}
+
+void loop() {
+  // 讀取按鈕
+  int buttonState = digitalRead(buttonPin);
+  if (lastButtonState == HIGH && buttonState == LOW) {
+    mode = (mode + 1) % 2; // 兩種模式切換
+    delay(200); // 防彈跳
+  }
+  lastButtonState = buttonState;
+
+  if (mode == 0) {
+    // === 呼吸燈模式 ===
+    analogColor(ledcolor, brightness);  // 顯示當前顏色
+    brightness += fadeAmount;
+    if (brightness <= 0 || brightness >= 255) {
+      fadeAmount = -fadeAmount;
+      if (brightness <= 0) {            // 一次完整呼吸後換顏色
+        ledcolor++;
+        if (ledcolor > 6) ledcolor = 0;
+      }
+    }
+    delay(20);
+
+  } else if (mode == 1) {
+    // === 快閃燈模式 ===
+    unsigned long currentMillis = millis();
+    if (currentMillis - prevMillis >= flashInterval) {
+      prevMillis = currentMillis;
+      static bool state = false;
+      state = !state;
+
+      if (state) {
+        digitalColor(ledcolor); // 顯示顏色
+      } else {
+        digitalWrite(RledPin, LOW);
+        digitalWrite(GledPin, LOW);
+        digitalWrite(BledPin, LOW);
+        ledcolor++;
+        if (ledcolor > 6) ledcolor = 0; // 換下一個顏色
+      }
+    }
+  }
+}
+
+// ===== 顯示靜態顏色（快閃模式用） =====
+void digitalColor(int color) {
+  switch (color) {
+    case 0: digitalWrite(RledPin, HIGH); digitalWrite(GledPin, HIGH); digitalWrite(BledPin, HIGH); break; // 白
+    case 1: digitalWrite(RledPin, HIGH); digitalWrite(GledPin, LOW);  digitalWrite(BledPin, LOW);  break; // 紅
+    case 2: digitalWrite(RledPin, LOW);  digitalWrite(GledPin, HIGH); digitalWrite(BledPin, LOW);  break; // 綠
+    case 3: digitalWrite(RledPin, LOW);  digitalWrite(GledPin, LOW);  digitalWrite(BledPin, HIGH); break; // 藍
+    case 4: digitalWrite(RledPin, HIGH); digitalWrite(GledPin, HIGH); digitalWrite(BledPin, LOW);  break; // 黃
+    case 5: digitalWrite(RledPin, HIGH); digitalWrite(GledPin, LOW);  digitalWrite(BledPin, HIGH); break; // 品紅
+    case 6: digitalWrite(RledPin, LOW);  digitalWrite(GledPin, HIGH); digitalWrite(BledPin, HIGH); break; // 青
+  }
+}
+
+// ===== 呼吸燈顏色（使用 PWM 漸變） =====
+void analogColor(int color, int brightness) {
+  switch (color) {
+    case 0: analogWrite(RledPin, brightness); analogWrite(GledPin, brightness); analogWrite(BledPin, brightness); break;
+    case 1: analogWrite(RledPin, brightness); analogWrite(GledPin, 0);          analogWrite(BledPin, 0);          break;
+    case 2: analogWrite(RledPin, 0);          analogWrite(GledPin, brightness); analogWrite(BledPin, 0);          break;
+    case 3: analogWrite(RledPin, 0);          analogWrite(GledPin, 0);          analogWrite(BledPin, brightness); break;
+    case 4: analogWrite(RledPin, brightness); analogWrite(GledPin, brightness); analogWrite(BledPin, 0);          break;
+    case 5: analogWrite(RledPin, brightness); analogWrite(GledPin, 0);          analogWrite(BledPin, brightness); break;
+    case 6: analogWrite(RledPin, 0);          analogWrite(GledPin, brightness); analogWrite(BledPin, brightness); break;
+  }
+}
