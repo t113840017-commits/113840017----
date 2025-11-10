@@ -1,0 +1,49 @@
+const int ledPin = 3;
+const int buttonPin = 2;
+
+int mode = 0;  // 0:恆亮, 1:慢閃(500ms), 2:中閃(250ms), 3:快閃(70ms)
+int lastButtonState = HIGH;
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
+  digitalWrite(ledPin, HIGH);  // 預設亮
+}
+
+void loop() {
+  int buttonState = digitalRead(buttonPin);
+
+  // 檢測按下（低電位觸發）
+  if (buttonState == LOW && lastButtonState == HIGH) {
+    delay(50);  // 簡單防抖動
+    mode = (mode + 1) % 4;  // 循環模式 (0~3)
+  }
+  lastButtonState = buttonState;
+
+  // 模式控制
+  if (mode == 0) {
+    // 恆亮
+    digitalWrite(ledPin, HIGH);
+  }
+  else if (mode == 1) {
+    // 慢閃 (0.5秒)
+    digitalWrite(ledPin, HIGH);
+    delay(500);
+    digitalWrite(ledPin, LOW);
+    delay(500);
+  }
+  else if (mode == 2) {
+    // 中速閃 (0.25秒)
+    digitalWrite(ledPin, HIGH);
+    delay(250);
+    digitalWrite(ledPin, LOW);
+    delay(250);
+  }
+  else if (mode == 3) {
+    // 快閃 (0.07秒)
+    digitalWrite(ledPin, HIGH);
+    delay(70);
+    digitalWrite(ledPin, LOW);
+    delay(70);
+  }
+}
