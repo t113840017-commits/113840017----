@@ -1,0 +1,18 @@
+const int buttonPin = 2;     // 按鈕接腳
+const int ledPin = 13;       // LED 接腳
+int buttonState = 0;         // 按鈕狀態
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP);  // 使用內建上拉電阻
+}
+
+void loop() {
+  buttonState = digitalRead(buttonPin);
+
+  if (buttonState == LOW) {  // 按下按鈕
+    digitalWrite(ledPin, HIGH);  // LED 亮
+  } else {
+    digitalWrite(ledPin, LOW);   // LED 滅
+  }
+}
